@@ -132,7 +132,21 @@ impl<T> DeQueue<T>{
     }
     #[allow(unused)]
     pub fn pop_back(&mut self)->Option<T>{
-        todo!()
+        let val=if self.len==0{
+            None
+        }else if self.len==1{
+            unsafe {
+                Some(self.ptr.as_ptr().add(self.tail).read())   
+            }
+        }else {
+            let tail=self.tail;
+            self.tail=(self.tail+1)%self.size;
+            unsafe {
+                Some(self.ptr.as_ptr().add(tail).read())
+            }
+        };
+        self.len-=1;
+        val
     }
     #[allow(unused)]
     pub fn len(&self)->usize{
