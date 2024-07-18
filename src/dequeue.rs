@@ -1,6 +1,6 @@
 #[allow(unused_imports)]
 use std::{alloc::{alloc, dealloc, realloc,Layout}, ptr::{NonNull,copy}};
-
+use std:: ptr;
 
 #[allow(unused)]
 pub struct DeQueue<T>{
@@ -11,6 +11,7 @@ pub struct DeQueue<T>{
     size:usize
 }
 impl<T> DeQueue<T>{
+    #[allow(unused)]
     pub fn new()->Self{
         DeQueue { 
             ptr: {
@@ -25,9 +26,9 @@ impl<T> DeQueue<T>{
             size: 12 
         }
     }
+    #[allow(unused)]
     fn grow(&mut self){
         let new_size=self.size*2;
-        // if isize::MAX==usize::MAX
         let new_layout=Layout::array::<T>(new_size).unwrap();
         let new_ptr={
             unsafe {
@@ -35,9 +36,86 @@ impl<T> DeQueue<T>{
             }
         };
         self.ptr=new_ptr;
+        unsafe {
+            if self.tail>self.head{
+                let new_tail=self.tail+new_size-self.size;
+                ptr::copy(
+                    self.ptr.as_ptr().add(self.tail),
+                    self.ptr.as_ptr().add(new_tail),
+                    self.size-self.tail
+                );
+                self.tail=new_tail;
+            }
+            else {
+                let new_head=self.head+new_size-self.size;
+                ptr::copy(
+                    self.ptr.as_ptr().add(self.head),
+                    self.ptr.as_ptr().add(new_head),
+                    self.size-self.tail
+                );
+                self.head=new_head;
+            }
+            
+        }
         self.size=new_size;
     }
+    #[allow(unused)]
     pub fn push_front(&mut self,data:T){
-
+        if self.head==0 && self.len==0{
+            unsafe {
+                ptr::write(self.ptr.as_ptr(), data)
+            }
+        }
+        else {
+            let idx=(self.head+1)%self.size;
+            unsafe {
+                ptr::write(self.ptr.as_ptr().add(idx), data)
+            }
+            self.head=idx;
+        }
+        self.len+=1;
+        if self.size-self.len==1{
+            self.grow()
+        }
+    }
+    #[allow(unused)]
+    pub fn push_back(&mut self,data:T){
+        if self.len==0 && self.tail==0{
+            unsafe {
+                ptr::write(self.ptr.as_ptr(), data)
+            }
+        }
+        else if self.tail==0 {
+            let idx=self.size-1;
+            unsafe {
+                ptr::write(self.ptr.as_ptr().add(idx), data)
+            }
+            self.tail=idx;
+        }
+        else {
+            let idx=(self.tail-1)%self.size;
+            unsafe {
+                ptr::write(self.ptr.as_ptr().add(idx), data)
+            }
+            self.tail=idx;
+        }
+        self.len+=1;
+        if self.size-self.len==1{
+            self.grow()
+        }
+    }
+    #[allow(unused)]
+    pub fn pop_front(&mut self)->Option<T>{
+        todo!()
+    }
+    #[allow(unused)]
+    pub fn pop_back(&mut self)->Option<T>{
+        todo!()
+    }
+    #[allow(unused)]
+    pub fn len(&self)->usize{
+        self.len
     }
 }
+
+unsafe  impl<T> Send for DeQueue<T>  {}
