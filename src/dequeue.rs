@@ -106,7 +106,29 @@ impl<T> DeQueue<T>{
     }
     #[allow(unused)]
     pub fn pop_front(&mut self)->Option<T>{
-        todo!()
+        let val=if self.len==0{
+            None
+        }else if self.len==1{
+            unsafe {
+                Some(self.ptr.as_ptr().add(self.head).read())    
+            }            
+        }else {
+            if self.head==0{
+                unsafe {
+                    self.head=self.size;
+                    Some(self.ptr.as_ptr().add(0).read())   
+                }
+            }else {
+                let idx=(self.head-1);
+                self.head=idx;
+                unsafe {
+                    Some(self.ptr.as_ptr().add(idx+1).read())
+                }
+            }
+        };
+        self.len-=1;
+        val
+        
     }
     #[allow(unused)]
     pub fn pop_back(&mut self)->Option<T>{
