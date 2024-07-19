@@ -178,6 +178,7 @@ impl<T> DeQueue<T>{
 impl<T> Drop for DeQueue<T>{
     fn drop(&mut self) {
         unsafe {
+            while self.pop_back().is_some(){}
             let layout=Layout::array::<T>(self.size).unwrap();
             dealloc(self.ptr.as_ptr() as *mut u8,layout);
             todo!("drop for inner element")
